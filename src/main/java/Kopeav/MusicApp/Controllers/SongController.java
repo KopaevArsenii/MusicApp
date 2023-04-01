@@ -55,7 +55,9 @@ public class SongController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file,
+                                                   @RequestParam("author") String author,
+                                                   @RequestParam("name") String name) {
         try {
             Resource resource = resourceLoader.getResource("classpath:static/");
             File folder = resource.getFile();
@@ -63,6 +65,15 @@ public class SongController {
             try (OutputStream os = new FileOutputStream(newFile)) {
                 os.write(file.getBytes());
             }
+
+            Song newSong = Song.builder()
+                    .author(author)
+                    .name(name)
+                    .filePath(file.getOriginalFilename())
+                    .build();
+
+            songService.save(newSong);
+
             return ResponseEntity.ok("File uploaded successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");

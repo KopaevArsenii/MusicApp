@@ -15,4 +15,8 @@ public class SongService {
     public Optional<Song> findSongById(int id) {
         return songRepository.findById(id);
     }
+
+    public void save(Song song) {
+        songRepository.save(song);
+    }
 }
