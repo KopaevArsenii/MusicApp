@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### Custom ignore ###
-./src/resources
+/src/main/resources/application.yml
