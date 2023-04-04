@@ -2,6 +2,7 @@ package Kopeav.MusicApp.Services;
 
 import Kopeav.MusicApp.Models.Song;
 import Kopeav.MusicApp.Repositories.SongRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ public class SongService {
         return songRepository.findById(id);
     }
 
+    @Transactional
     public void save(Song song) {
         songRepository.save(song);
     }

@@ -1,25 +1,15 @@
 package Kopeav.MusicApp.Controllers;
 
+import Kopeav.MusicApp.DTO.SongDTO;
 import Kopeav.MusicApp.Models.Song;
-import Kopeav.MusicApp.Repositories.SongRepository;
 import Kopeav.MusicApp.Services.SongService;
-import jakarta.servlet.ServletContext;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.util.Base64;
 import java.util.Optional;
 
 @RestController
@@ -28,55 +18,65 @@ import java.util.Optional;
 @CrossOrigin
 public class SongController {
 
-    private ServletContext servletContext;
     private SongService songService;
-    private ResourceLoader resourceLoader;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getSongById(@PathVariable int id) {
+    public ResponseEntity<SongDTO> getSong(@PathVariable int id) {
         Optional<Song> songOptional = songService.findSongById(id);
 
         if (songOptional.isPresent()) {
             Song song = songOptional.get();
 
+            String songData =  Base64.getEncoder().encodeToString(song.getSong());
+            String iconData = Base64.getEncoder().encodeToString(song.getIcon());
+
+            SongDTO requestSong = SongDTO.builder()
+                    .id(song.getId())
+                    .name(song.getName())
+                    .author(song.getAuthor())
+                    .songData(songData)
+                    .iconData(iconData).build();
+
             return ResponseEntity.ok()
-                    .body(song);
+                    .body(requestSong);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @GetMapping("/listen/{fileName}")
-    public ResponseEntity<?> getMusic(@PathVariable String fileName) {
-        Resource resource = resourceLoader.getResource("classpath:/static/" + fileName);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
-    }
+//    @GetMapping("/{id}/song")
+//    public ResponseEntity<byte[]> getSong(@PathVariable int id) {
+//        Optional<Song> optionalSong = songService.findSongById(id);
+//
+//        if (optionalSong.isPresent()) {
+//            Song song = optionalSong.get();
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+//            headers.setContentLength(song.getSong().length);
+//            return new ResponseEntity<>(song.getSong(), headers, HttpStatus.OK);
+//        } else {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//    }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file,
-                                                   @RequestParam("author") String author,
-                                                   @RequestParam("name") String name) {
+    public ResponseEntity<String> saveNewSong(@RequestParam("song") MultipartFile song,
+                                              @RequestParam("icon") MultipartFile icon,
+                                              @RequestParam("author") String author,
+                                              @RequestParam("name") String name) {
         try {
-            Resource resource = resourceLoader.getResource("classpath:static/");
-            File folder = resource.getFile();
-            File newFile = new File(folder.getAbsolutePath() + "/" + file.getOriginalFilename());
-            try (OutputStream os = new FileOutputStream(newFile)) {
-                os.write(file.getBytes());
-            }
-
             Song newSong = Song.builder()
-                    .author(author)
+                    .song(song.getBytes())
+                    .icon(icon.getBytes())
                     .name(name)
-                    .filePath(file.getOriginalFilename())
+                    .author(author)
                     .build();
 
             songService.save(newSong);
 
             return ResponseEntity.ok("File uploaded successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to add new song");
         }
     }
 

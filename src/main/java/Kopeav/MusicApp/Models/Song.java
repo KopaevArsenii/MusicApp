@@ -1,9 +1,6 @@
 package Kopeav.MusicApp.Models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +17,8 @@ public class Song {
     private int id;
     private String name;
     private String author;
-    private String filePath;
+    @Lob
+    private byte[] song;
+    @Lob
+    private byte[] icon;
 }
