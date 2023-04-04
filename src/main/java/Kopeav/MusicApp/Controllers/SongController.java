@@ -6,6 +6,7 @@ import Kopeav.MusicApp.Services.SongService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,21 +45,7 @@ public class SongController {
         }
     }
 
-//    @GetMapping("/{id}/song")
-//    public ResponseEntity<byte[]> getSong(@PathVariable int id) {
-//        Optional<Song> optionalSong = songService.findSongById(id);
-//
-//        if (optionalSong.isPresent()) {
-//            Song song = optionalSong.get();
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//            headers.setContentLength(song.getSong().length);
-//            return new ResponseEntity<>(song.getSong(), headers, HttpStatus.OK);
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//    }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/upload")
     public ResponseEntity<String> saveNewSong(@RequestParam("song") MultipartFile song,
                                               @RequestParam("icon") MultipartFile icon,
